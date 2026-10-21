@@ -1,0 +1,527 @@
+
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class LibraryManagementSystem {
+
+    static Scanner sc = new Scanner(System.in);
+    static ArrayList<Book> books = new ArrayList<>();
+    static ArrayList<IssueRecord> records = new ArrayList<>();
+    static int nextRecordId = 1;
+
+    // Book class
+    static class Book {
+        int id;
+        String title;
+        String author;
+        String category;
+        int quantity;
+
+        Book(int id, String title, String author,
+             String category, int quantity) {
+            this.id = id;
+            this.title = title;
+            this.author = author;
+            this.category = category;
+            this.quantity = quantity;
+        }
+    }
+
+    // Book issue record class
+    static class IssueRecord {
+        int recordId;
+        int bookId;
+        String studentName;
+        String issueDate;
+        String returnDate;
+        boolean returned;
+
+        IssueRecord(int recordId, int bookId,
+                    String studentName, String issueDate) {
+            this.recordId = recordId;
+            this.bookId = bookId;
+            this.studentName = studentName;
+            this.issueDate = issueDate;
+            this.returnDate = "Not returned";
+            this.returned = false;
+        }
+    }
+
+    public static void main(String[] args) {
+        int choice;
+
+        do {
+            System.out.println("\n==================================");
+            System.out.println("   LIBRARY MANAGEMENT SYSTEM");
+            System.out.println("==================================");
+            System.out.println("1. Add Book");
+            System.out.println("2. View All Books");
+            System.out.println("3. Search Book");
+            System.out.println("4. Issue Book");
+            System.out.println("5. Return Book");
+            System.out.println("6. Update Book");
+            System.out.println("7. Delete Selected Book");
+            System.out.println("8. Filter Available Books");
+            System.out.println("9. View Issued Records");
+            System.out.println("10. Generate Library Report");
+            System.out.println("0. Exit");
+            System.out.print("Enter your choice: ");
+
+            choice = readInt();
+
+            switch (choice) {
+                case 1:
+                    addBook();
+                    break;
+                case 2:
+                    viewBooks();
+                    break;
+                case 3:
+                    searchBook();
+                    break;
+                case 4:
+                    issueBook();
+                    break;
+                case 5:
+                    returnBook();
+                    break;
+                case 6:
+                    updateBook();
+                    break;
+                case 7:
+                    deleteBook();
+                    break;
+                case 8:
+                    filterBooks();
+                    break;
+                case 9:
+                    viewIssuedRecords();
+                    break;
+                case 10:
+                    generateReport();
+                    break;
+                case 0:
+                    System.out.println("Thank you for using the system.");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Try again.");
+            }
+        } while (choice != 0);
+
+        sc.close();
+    }
+
+    // Read integer safely
+    static int readInt() {
+        while (!sc.hasNextInt()) {
+            System.out.print("Enter a valid number: ");
+            sc.next();
+        }
+        int value = sc.nextInt();
+        sc.nextLine();
+        return value;
+    }
+
+    // Find book using ID
+    static Book findBook(int id) {
+        for (Book b : books) {
+            if (b.id == id) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    // 1. Add book
+    static void addBook() {
+        System.out.print("Enter Book ID: ");
+        int id = readInt();
+
+        if (findBook(id) != null) {
+            System.out.println("Book ID already exists.");
+            return;
+        }
+
+        System.out.print("Enter Book Title: ");
+        String title = sc.nextLine().trim();
+
+        System.out.print("Enter Author Name: ");
+        String author = sc.nextLine().trim();
+
+        System.out.print("Enter Category: ");
+        String category = sc.nextLine().trim();
+
+        System.out.print("Enter Quantity: ");
+        int quantity = readInt();
+
+        if (title.isEmpty() || author.isEmpty()
+                || category.isEmpty() || quantity < 0) {
+            System.out.println("Invalid book details.");
+            return;
+        }
+
+        books.add(new Book(id, title, author,
+                           category, quantity));
+
+        System.out.println("Book added successfully.");
+    }
+
+    // 2. View all books
+    static void viewBooks() {
+        if (books.isEmpty()) {
+            System.out.println("No books available.");
+            return;
+        }
+
+        System.out.println("\n---------- BOOK LIST ----------");
+        System.out.printf("%-8s %-25s %-20s %-15s %-10s%n",
+                "ID", "TITLE", "AUTHOR", "CATEGORY", "QUANTITY");
+
+        for (Book b : books) {
+            System.out.printf("%-8d %-25s %-20s %-15s %-10d%n",
+                    b.id, b.title, b.author,
+                    b.category, b.quantity);
+        }
+    }
+
+    // 3. Search by ID or title
+    static void searchBook() {
+        System.out.println("1. Search by ID");
+        System.out.println("2. Search by Title");
+        System.out.print("Choose search type: ");
+        int option = readInt();
+
+        boolean found = false;
+
+        if (option == 1) {
+            System.out.print("Enter Book ID: ");
+            int id = readInt();
+
+            Book b = findBook(id);
+
+            if (b != null) {
+                displayBook(b);
+            } else {
+                System.out.println("Book not found.");
+            }
+            return;
+        }
+
+        if (option == 2) {
+            System.out.print("Enter title or keyword: ");
+            String keyword = sc.nextLine().trim();
+
+            for (Book b : books) {
+                if (b.title.toLowerCase()
+                        .contains(keyword.toLowerCase())) {
+                    displayBook(b);
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                System.out.println("No matching books found.");
+            }
+        } else {
+            System.out.println("Invalid search option.");
+        }
+    }
+
+    static void displayBook(Book b) {
+        System.out.println("\nBook ID: " + b.id);
+        System.out.println("Title: " + b.title);
+        System.out.println("Author: " + b.author);
+        System.out.println("Category: " + b.category);
+        System.out.println("Available Quantity: " + b.quantity);
+    }
+
+    // 4. Issue book
+    static void issueBook() {
+        System.out.print("Enter Book ID: ");
+        int id = readInt();
+
+        Book b = findBook(id);
+
+        if (b == null) {
+            System.out.println("Book not found.");
+            return;
+        }
+
+        if (b.quantity <= 0) {
+            System.out.println("Book is currently unavailable.");
+            return;
+        }
+
+        System.out.print("Enter Student Name: ");
+        String student = sc.nextLine().trim();
+
+        if (student.isEmpty()) {
+            System.out.println("Student name cannot be empty.");
+            return;
+        }
+
+        System.out.print("Enter Issue Date (DD-MM-YYYY): ");
+        String date = sc.nextLine().trim();
+
+        if (!date.matches("\\d{2}-\\d{2}-\\d{4}")) {
+            System.out.println("Invalid date format.");
+            return;
+        }
+
+        records.add(new IssueRecord(nextRecordId++,
+                                    id, student, date));
+
+        b.quantity--;
+
+        System.out.println("Book issued successfully.");
+    }
+
+    // 5. Return book
+    static void returnBook() {
+        System.out.print("Enter Issue Record ID: ");
+        int recordId = readInt();
+
+        for (IssueRecord r : records) {
+            if (r.recordId == recordId && !r.returned) {
+                System.out.print(
+                    "Enter Return Date (DD-MM-YYYY): ");
+                String date = sc.nextLine().trim();
+
+                if (!date.matches("\\d{2}-\\d{2}-\\d{4}")) {
+                    System.out.println("Invalid date format.");
+                    return;
+                }
+
+                Book b = findBook(r.bookId);
+
+                if (b == null) {
+                    System.out.println("Book record not found.");
+                    return;
+                }
+
+                r.returned = true;
+                r.returnDate = date;
+                b.quantity++;
+
+                System.out.println("Book returned successfully.");
+                return;
+            }
+        }
+
+        System.out.println(
+            "Active issue record not found.");
+    }
+
+    // 6. Update book details
+    static void updateBook() {
+        System.out.print("Enter Book ID to update: ");
+        int id = readInt();
+
+        Book b = findBook(id);
+
+        if (b == null) {
+            System.out.println("Book not found.");
+            return;
+        }
+
+        System.out.println("1. Update Title");
+        System.out.println("2. Update Author");
+        System.out.println("3. Update Category");
+        System.out.println("4. Update Quantity");
+        System.out.print("Choose field: ");
+
+        int option = readInt();
+
+        switch (option) {
+            case 1:
+                System.out.print("Enter New Title: ");
+                String title = sc.nextLine().trim();
+
+                if (!title.isEmpty()) {
+                    b.title = title;
+                    System.out.println("Title updated.");
+                } else {
+                    System.out.println("Title cannot be empty.");
+                }
+                break;
+
+            case 2:
+                System.out.print("Enter New Author: ");
+                String author = sc.nextLine().trim();
+
+                if (!author.isEmpty()) {
+                    b.author = author;
+                    System.out.println("Author updated.");
+                } else {
+                    System.out.println("Author cannot be empty.");
+                }
+                break;
+
+            case 3:
+                System.out.print("Enter New Category: ");
+                String category = sc.nextLine().trim();
+
+                if (!category.isEmpty()) {
+                    b.category = category;
+                    System.out.println("Category updated.");
+                } else {
+                    System.out.println("Category cannot be empty.");
+                }
+                break;
+
+            case 4:
+                System.out.print("Enter New Total Quantity: ");
+                int newQuantity = readInt();
+
+                if (newQuantity < 0) {
+                    System.out.println("Invalid quantity.");
+                    return;
+                }
+
+                int issuedCount = 0;
+
+                for (IssueRecord r : records) {
+                    if (r.bookId == id && !r.returned) {
+                        issuedCount++;
+                    }
+                }
+
+                if (newQuantity < issuedCount) {
+                    System.out.println(
+                        "Quantity cannot be less than issued books.");
+                } else {
+                    b.quantity = newQuantity - issuedCount;
+                    System.out.println("Quantity updated.");
+                }
+                break;
+
+            default:
+                System.out.println("Invalid option.");
+        }
+    }
+
+    // 7. Delete selected book
+    static void deleteBook() {
+        System.out.print("Enter Book ID to delete: ");
+        int id = readInt();
+
+        Book b = findBook(id);
+
+        if (b == null) {
+            System.out.println("Book not found.");
+            return;
+        }
+
+        for (IssueRecord r : records) {
+            if (r.bookId == id && !r.returned) {
+                System.out.println(
+                    "Cannot delete: a book is still issued.");
+                return;
+            }
+        }
+
+        books.remove(b);
+        System.out.println("Book deleted successfully.");
+    }
+
+    // 8. Filter available books
+    static void filterBooks() {
+        System.out.println("1. Available Books");
+        System.out.println("2. Search by Category");
+        System.out.print("Choose filter: ");
+
+        int option = readInt();
+        boolean found = false;
+
+        if (option == 1) {
+            for (Book b : books) {
+                if (b.quantity > 0) {
+                    displayBook(b);
+                    found = true;
+                }
+            }
+        } else if (option == 2) {
+            System.out.print("Enter Category: ");
+            String category = sc.nextLine().trim();
+
+            for (Book b : books) {
+                if (b.category.equalsIgnoreCase(category)) {
+                    displayBook(b);
+                    found = true;
+                }
+            }
+        } else {
+            System.out.println("Invalid filter option.");
+            return;
+        }
+
+        if (!found) {
+            System.out.println("No matching books found.");
+        }
+    }
+
+    // 9. View issue records
+    static void viewIssuedRecords() {
+        if (records.isEmpty()) {
+            System.out.println("No issue records available.");
+            return;
+        }
+
+        System.out.println("\n---------- ISSUE RECORDS ----------");
+
+        System.out.printf(
+            "%-8s %-8s %-20s %-15s %-15s %-12s%n",
+            "REC ID", "BOOK ID", "STUDENT",
+            "ISSUE DATE", "RETURN DATE", "STATUS");
+
+        for (IssueRecord r : records) {
+            System.out.printf(
+                "%-8d %-8d %-20s %-15s %-15s %-12s%n",
+                r.recordId,
+                r.bookId,
+                r.studentName,
+                r.issueDate,
+                r.returnDate,
+                r.returned ? "Returned" : "Issued");
+        }
+    }
+
+    // 10. Generate library report
+    static void generateReport() {
+        int totalTitles = books.size();
+        int totalCopies = 0;
+        int activeIssues = 0;
+        int returnedBooks = 0;
+        int availableCopies = 0;
+
+        for (Book b : books) {
+            totalCopies += b.quantity;
+
+            // Quantity currently available
+            availableCopies += b.quantity;
+        }
+
+        for (IssueRecord r : records) {
+            if (r.returned) {
+                returnedBooks++;
+            } else {
+                activeIssues++;
+            }
+        }
+
+        // Include copies currently issued
+        int issuedCopies = activeIssues;
+        int totalPhysicalCopies = totalCopies + issuedCopies;
+
+        System.out.println("\n======= LIBRARY REPORT =======");
+        System.out.println("Total Book Titles: " + totalTitles);
+        System.out.println("Total Physical Copies: "
+                           + totalPhysicalCopies);
+        System.out.println("Available Copies: " + availableCopies);
+        System.out.println("Currently Issued: " + activeIssues);
+        System.out.println("Total Issue Transactions: "
+                           + records.size());
+        System.out.println("Returned Transactions: " + returnedBooks);
+        System.out.println("==============================");
+    }
+}
